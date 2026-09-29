@@ -12,7 +12,7 @@ Every build is signed with the same committed debug key (`app/debug.keystore`), 
 
 ## How it works
 
-The app has two tabs: **Stories** and **Messages** (`/direct/inbox/`, where the app opens). **Stories** (the home page with the feed hidden, so only the stories tray is left).
+The app has two tabs: **Stories** (the home page with the feed hidden, so only the stories tray is left) and **Messages** (`/direct/inbox/`, where the app opens).
 
 Blocking happens in three layers:
 
