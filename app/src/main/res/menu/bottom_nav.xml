@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/nav_messages"
-        android:icon="@drawable/ic_messages"
-        android:title="@string/tab_messages" />
-    <item
         android:id="@+id/nav_stories"
         android:icon="@drawable/ic_stories"
         android:title="@string/tab_stories" />
+    <item
+        android:id="@+id/nav_messages"
+        android:icon="@drawable/ic_messages"
+        android:title="@string/tab_messages" />
 </menu>

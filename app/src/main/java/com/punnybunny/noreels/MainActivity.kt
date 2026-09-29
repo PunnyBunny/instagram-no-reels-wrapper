@@ -62,6 +62,8 @@ class MainActivity : AppCompatActivity() {
         setUpBottomNav()
         setUpBackHandling()
 
+        // The app opens on Messages, but BottomNavigationView checks the first item (Stories).
+        bottomNav.menu.findItem(R.id.nav_messages)?.isChecked = true
         if (savedInstanceState == null || webView.restoreState(savedInstanceState) == null) {
             webView.loadUrl(UrlPolicy.INBOX_URL)
         }

@@ -12,7 +12,7 @@ Every build is signed with the same committed debug key (`app/debug.keystore`), 
 
 ## How it works
 
-The app has two tabs: **Messages** (`/direct/inbox/`) and **Stories** (the home page with the feed hidden, so only the stories tray is left).
+The app has two tabs: **Stories** and **Messages** (`/direct/inbox/`, where the app opens). **Stories** (the home page with the feed hidden, so only the stories tray is left).
 
 Blocking happens in three layers:
 
@@ -20,7 +20,7 @@ Blocking happens in three layers:
 |---|---|---|
 | URL policy | `UrlPolicy.kt` | An allow-list of paths: `/`, `/direct/`, `/stories/`, plus the login and account paths. Any other instagram.com page is blocked. Links to other sites open in your browser. `instagram://` app links are dropped. |
 | Navigation hooks | `MainActivity.kt` | `shouldOverrideUrlLoading` checks full page loads against the policy. `doUpdateVisitedHistory` catches Instagram's in-app navigation and goes back if it lands on a blocked page. |
-| Injected script | `assets/guard.js` | Blocks taps on links to blocked pages before Instagram handles them. Hides the Reels, Explore, Search and Create buttons. On the home page it hides the feed (including its infinite-scroll loader) and pauses videos. |
+| Injected script | `assets/guard.js` | Blocks taps on links to blocked pages before Instagram handles them. Hides the Reels, Explore, Search and Create buttons. On the home page it keeps only the stories tray, hiding everything after it (posts, suggested posts, the infinite-scroll loader) so the feed stops loading, and pauses videos. |
 
 When something is blocked, you see a toast such as "Reels blocked — DMs & Stories only".
 

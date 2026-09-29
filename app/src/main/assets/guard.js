@@ -47,7 +47,8 @@
     'a[href="/explore/"], a[href^="/explore/"], a[href="/reels/"], a[href^="/reels/"],',
     'a[href*="/create/"], [data-noreels-hidden] { display: none !important; }',
     // On the home page only the stories tray should remain.
-    'html.noreels-home main article { display: none !important; }'
+    'html.noreels-home main article, html.noreels-home main [role="progressbar"],',
+    'html.noreels-home main svg[aria-label^="Loading"] { display: none !important; }'
   ].join('\n');
 
   function installStyle() {
@@ -64,29 +65,51 @@
     return location.pathname === '/' || location.pathname === '';
   }
 
-  // Hide the whole feed branch, not just the posts, so the (now invisible) infinite-scroll
-  // loader stops pulling in more posts. Walk up from each post to the highest ancestor
-  // that doesn't share a parent with the stories tray (story rings are drawn on <canvas>).
-  var feedSeenAt = 0;
+  var TRAY_MARKERS = 'a[href^="/stories/"], canvas, [aria-label*="Story"], [aria-label*="story"]';
+  // Anything containing one of these is feed, not stories tray.
+  var FEED_MARKERS = 'article, video, a[href^="/p/"], a[href^="/reel/"], a[href^="/reels/"], ' +
+    '[role="progressbar"], svg[aria-label^="Loading"]';
+
+  // The stories tray: the highest ancestor of the first story marker (below <main>) that
+  // holds no feed content, so it spans every story in the row but nothing else.
+  function findTray(main) {
+    var marker = main.querySelector(TRAY_MARKERS);
+    if (!marker || marker.closest(FEED_MARKERS)) return null;
+    var tray = marker;
+    while (tray.parentElement && tray.parentElement !== main &&
+           !tray.parentElement.querySelector(FEED_MARKERS)) {
+      tray = tray.parentElement;
+    }
+    return tray;
+  }
+
+  // On the home page keep only the stories tray: hide everything that comes after it at
+  // every level up to <main> - posts, suggested posts/reels, and the infinite-scroll loader.
+  // With the loader hidden Instagram stops paginating, so the spinner stops too.
+  var noTraySince = 0;
   function hideFeed() {
     var main = document.querySelector('main');
-    if (!main || !main.querySelector('article')) return;
-    // Give the stories tray a moment to render first so we don't hide the branch it lands
-    // in. (Posts are already hidden by CSS meanwhile.) If it never shows, there are simply
-    // no stories right now.
-    if (!main.querySelector('canvas')) {
-      if (!feedSeenAt) { feedSeenAt = Date.now(); setTimeout(schedule, 3100); }
-      if (Date.now() - feedSeenAt < 3000) return;
-    }
-    var articles = main.querySelectorAll('article:not([data-noreels-seen])');
-    for (var i = 0; i < articles.length; i++) {
-      var node = articles[i];
-      node.setAttribute('data-noreels-seen', '');
-      while (node.parentElement && node.parentElement !== main &&
-             !node.parentElement.querySelector('canvas')) {
-        node = node.parentElement;
+    if (!main) return;
+    var tray = findTray(main);
+    if (tray) {
+      noTraySince = 0;
+      for (var node = tray; node && node !== main; node = node.parentElement) {
+        node.removeAttribute('data-noreels-hidden'); // in case the no-tray fallback hid it
+        for (var sib = node.nextElementSibling; sib; sib = sib.nextElementSibling) {
+          sib.setAttribute('data-noreels-hidden', '');
+        }
       }
-      if (!node.querySelector('canvas')) node.setAttribute('data-noreels-hidden', '');
+      return;
+    }
+    // No tray (yet). Posts and loaders are hidden by CSS meanwhile; if it still hasn't
+    // appeared after a few seconds there are no stories, so hide each post's whole branch.
+    if (!noTraySince) { noTraySince = Date.now(); setTimeout(schedule, 3100); }
+    if (Date.now() - noTraySince < 3000) return;
+    var articles = main.querySelectorAll('article');
+    for (var i = 0; i < articles.length; i++) {
+      var branch = articles[i];
+      while (branch.parentElement && branch.parentElement !== main) branch = branch.parentElement;
+      branch.setAttribute('data-noreels-hidden', '');
     }
   }
 
@@ -122,7 +145,7 @@
   function schedule() {
     if (scheduled) return;
     scheduled = true;
-    setTimeout(function () { scheduled = false; apply(); }, 100);
+    setTimeout(function () { scheduled = false; apply(); }, 50);
   }
 
   function start() {
