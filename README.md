@@ -20,14 +20,14 @@ Blocking happens in three layers:
 |---|---|---|
 | URL policy | `UrlPolicy.kt` | An allow-list of paths: `/`, `/direct/`, `/stories/`, plus the login and account paths. Any other instagram.com page is blocked. Links to other sites open in your browser. `instagram://` app links are dropped. |
 | Navigation hooks | `MainActivity.kt` | `shouldOverrideUrlLoading` checks full page loads against the policy. `doUpdateVisitedHistory` catches Instagram's in-app navigation and goes back if it lands on a blocked page. |
-| Injected script | `assets/guard.js` | Blocks taps on links to blocked pages before Instagram handles them. Hides the Reels, Explore, Search and Create buttons. On the home page it keeps only the stories tray, hiding everything after it (posts, suggested posts, the infinite-scroll loader) so the feed stops loading, and pauses videos. |
+| Injected script | `assets/guard.js` | Blocks taps on links to blocked pages before Instagram handles them. Hides the Reels, Explore, Search and Create buttons. On the home page it keeps only the stories tray, hiding everything after it (posts, suggested posts, the infinite-scroll loader) so the feed stops loading, and pauses videos. In DMs it closes the pop-up player when it's showing a reel. |
 
 When something is blocked, you see a toast such as "Reels blocked — DMs & Stories only".
 
 ## Limitations
 
 - The hiding in `guard.js` depends on Instagram's page structure and English labels, so an Instagram redesign can break it. The URL blocking doesn't depend on page structure and keeps working.
-- Reels that people send you in DMs still show up as thumbnails, but tapping them is blocked.
+- Reels that people send you in DMs still show up as thumbnails. Tapping one opens Instagram's pop-up player, which the app closes right away. It spots reels by their reel links or their Like and Comment buttons, so an unusual reel might still get through.
 - Voice and video calls aren't supported. You can still send photos from the gallery.
 
 ## Build locally

@@ -154,6 +154,38 @@
     }
   }
 
+  // Reels shared in a DM open in a pop-up over the chat without changing the URL, so the
+  // URL-based blocking never sees them. Close any pop-up that plays a video and clearly is
+  // a reel. Friends' own videos (no reel links, no Like + Comment buttons) are left alone.
+  var REEL_MARKERS = 'a[href*="/reel/"], a[href*="/reels/"]';
+  function isReelViewer(dialog) {
+    if (!dialog.querySelector('video')) return false;
+    if (dialog.querySelector(REEL_MARKERS)) return true;
+    return !!(dialog.querySelector('svg[aria-label="Like"]') &&
+              dialog.querySelector('svg[aria-label="Comment"]'));
+  }
+
+  function closeReelViewers() {
+    var dialogs = document.querySelectorAll('[role="dialog"]:not([data-noreels-hidden])');
+    for (var i = 0; i < dialogs.length; i++) {
+      var dialog = dialogs[i];
+      if (!isReelViewer(dialog)) continue;
+      var videos = dialog.querySelectorAll('video');
+      for (var j = 0; j < videos.length; j++) { videos[j].muted = true; videos[j].pause(); }
+      var close = dialog.querySelector('svg[aria-label="Close"]');
+      var closeBtn = close && close.closest('button, [role="button"], a');
+      if (closeBtn) closeBtn.click();
+      else document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      // If Instagram doesn't remove it, keep it out of sight anyway.
+      dialog.setAttribute('data-noreels-hidden', '');
+      notifyBlocked(location.origin + '/reels/');
+    }
+  }
+
+  function isDm() {
+    return location.pathname.indexOf('/direct/') === 0;
+  }
+
   function apply() {
     installStyle();
     var home = isHome();
@@ -163,6 +195,7 @@
       hideFeed();
       pauseStrayVideos();
     }
+    if (isDm()) closeReelViewers();
   }
 
   var scheduled = false;
