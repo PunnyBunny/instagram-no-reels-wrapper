@@ -1,0 +1,6 @@
+<resources>
+    <style name="Theme.NoReels" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/brand</item>
+        <item name="colorSecondaryContainer">@color/brand_container</item>
+    </style>
+</resources>

@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">DMs &amp; Stories</string>
+    <string name="tab_messages">Messages</string>
+    <string name="tab_stories">Stories</string>
+    <string name="blocked">%1$s blocked — DMs &amp; Stories only</string>
+    <string name="no_app_for_link">No app can open this link</string>
+</resources>
