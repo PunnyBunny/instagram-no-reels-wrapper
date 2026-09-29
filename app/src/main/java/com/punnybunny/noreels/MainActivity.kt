@@ -113,7 +113,11 @@ class MainActivity : AppCompatActivity() {
         }
         if (WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) {
             WebViewCompat.addWebMessageListener(webView, "NoReelsBridge", origins) { _, message, _, _, _ ->
-                message.data?.let { showBlocked(UrlPolicy.decide(it)) }
+                when (val data = message.data) {
+                    null -> Unit
+                    BACK_TO_INBOX_MESSAGE -> backToInbox()
+                    else -> showBlocked(UrlPolicy.decide(data))
+                }
             }
         }
 
@@ -229,6 +233,17 @@ class MainActivity : AppCompatActivity() {
         bottomNav.menu.findItem(id)?.isChecked = true
     }
 
+    /** Leave a DM thread: pop back to the inbox if it's the previous page (fast), else load it. */
+    private fun backToInbox() {
+        val history = webView.copyBackForwardList()
+        val previous = history.getItemAtIndex(history.currentIndex - 1)
+        if (previous != null && UrlPolicy.isInboxList(previous.url)) {
+            webView.goBack()
+        } else {
+            webView.loadUrl(UrlPolicy.INBOX_URL)
+        }
+    }
+
     private fun setUpBackHandling() {
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -245,6 +260,11 @@ class MainActivity : AppCompatActivity() {
         return assets.open("guard.js").bufferedReader().use { it.readText() }
             .replace("/*ALLOWED_PREFIXES*/[]", jsArray(UrlPolicy.ALLOWED_PATH_PREFIXES))
             .replace("/*APP_HOSTS*/[]", jsArray(UrlPolicy.APP_HOSTS))
+    }
+
+    private companion object {
+        /** Sent by guard.js when the in-page back arrow of a DM thread is tapped. */
+        const val BACK_TO_INBOX_MESSAGE = "noreels:back-to-inbox"
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

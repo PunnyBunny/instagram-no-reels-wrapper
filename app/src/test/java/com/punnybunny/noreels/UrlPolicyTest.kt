@@ -75,5 +75,8 @@ class UrlPolicyTest {
         assertTrue(UrlPolicy.isInbox("https://www.instagram.com/direct/t/1/"))
         assertFalse(UrlPolicy.isInbox("https://www.instagram.com/"))
         assertFalse(UrlPolicy.isInbox("https://www.instagram.com/stories/a/1/"))
+        assertTrue(UrlPolicy.isInboxList("https://www.instagram.com/direct/inbox/"))
+        assertTrue(UrlPolicy.isInboxList("https://www.instagram.com/direct/inbox"))
+        assertFalse(UrlPolicy.isInboxList("https://www.instagram.com/direct/t/1/"))
     }
 }

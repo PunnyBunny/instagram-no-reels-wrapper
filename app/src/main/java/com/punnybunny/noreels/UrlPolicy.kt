@@ -88,6 +88,9 @@ object UrlPolicy {
     /** True when [url] is a DM page, i.e. the Messages tab should be highlighted. */
     fun isInbox(url: String): Boolean = pathOf(url)?.startsWith("/direct/") == true
 
+    /** True for the inbox (the list of chats) itself, not a thread inside it. */
+    fun isInboxList(url: String): Boolean = pathOf(url) == "/direct/inbox/"
+
     private fun pathOf(url: String): String? = try {
         normalizePath(URI(url).rawPath)
     } catch (e: Exception) {

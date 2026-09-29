@@ -32,9 +32,33 @@
     } catch (e) { /* bridge unavailable; the tap is still blocked */ }
   }
 
+  // The "<" arrow at the top of a DM thread doesn't work inside the WebView, so it's handled
+  // natively instead: back to the inbox, like the phone's back button.
+  function isDmBackButton(t) {
+    if (location.pathname.indexOf('/direct/') !== 0 || location.pathname === '/direct/inbox/') return false;
+    if (t.closest('svg[aria-label="Back"]')) return true;
+    var btn = t.closest('a, button, [role="button"], [role="link"]');
+    return !!(btn && btn.querySelector('svg[aria-label="Back"]'));
+  }
+
+  function backToInbox() {
+    try {
+      if (window.NoReelsBridge) { window.NoReelsBridge.postMessage('noreels:back-to-inbox'); return; }
+    } catch (e) { /* fall through */ }
+    location.assign('/direct/inbox/');
+  }
+
   // 1. Swallow taps on links to blocked pages before Instagram's router sees them.
   window.addEventListener('click', function (e) {
-    var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+    var t = e.target && e.target.closest ? e.target : null;
+    if (!t) return;
+    if (isDmBackButton(t)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      backToInbox();
+      return;
+    }
+    var a = t.closest('a[href]');
     if (a && isBlocked(a.href)) {
       e.preventDefault();
       e.stopImmediatePropagation();
